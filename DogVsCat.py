@@ -14,12 +14,24 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
             img = cv2.imread(os.path.join(cat_dir, filename))
            
             img = cv2.resize(img, image_size)
+            
+            cv2.imshow(f'Image Loading {filename}', img)
+            print(f'Image Loading {filename}')
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
             images.append(img)
             labels.append(0)  # 0 for cat
     for filename in os.listdir(dog_dir):
         if filename.endswith('.jpg'):
             img = cv2.imread(os.path.join(dog_dir, filename))
             img = cv2.resize(img, image_size)
+
+            cv2.imshow(f'Image Loading {filename}', img)
+            print(f'Image Loading {filename}')
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
             images.append(img)
             labels.append(1)  # 1 for dog
     return np.array(images), np.array(labels)
