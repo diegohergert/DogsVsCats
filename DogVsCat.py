@@ -7,13 +7,11 @@ from sklearn.decomposition import PCA
 from skimage import exposure
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report, roc_auc_score, roc_curve
-from sklearn.model_selection import cross_val_score, KFold, cross_val_predict, learning_curve, validation_curve
+from sklearn.model_selection import cross_val_score, KFold, cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
 
 
 "load images from directory and resize them"
@@ -22,7 +20,7 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
     imagesGray = []
     labels = []
     for filename in os.listdir(cat_dir):
-        if filename.endswith('.jpg'):
+        if filename.endswith('.png') or filename.endswith('.jpg'):
             img = cv2.imread(os.path.join(cat_dir, filename))
             img = cv2.resize(img, image_size)
             
@@ -32,7 +30,7 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
             imagesGray.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
             labels.append(0)  # 0 for cat
     for filename in os.listdir(dog_dir):
-        if filename.endswith('.jpg'):
+        if filename.endswith('.png') or filename.endswith('.jpg'):
             img = cv2.imread(os.path.join(dog_dir, filename))
             img = cv2.resize(img, image_size)
 
@@ -44,12 +42,10 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
     cv2.destroyAllWindows()
     return np.array(images), np.array(imagesGray), np.array(labels)
 
-"""
-cat_dir = os.path.join("CatImages", "cats")
-dog_dir = os.path.join("DogImages", "dogs")
-"""
-cat_dir = os.path.join("dataset", "training_set", "cats")
-dog_dir = os.path.join("dataset", "training_set", "dogs")
+
+cat_dir = os.path.join("dataset", "animals", "cat")
+cat_dir = os.path.join("dogs_cats_sample_1000", "train", "cats")
+dog_dir = os.path.join("dataset", "animals", "dog")
 
 
 images, imagesGray, labels = load_images(cat_dir,dog_dir)
