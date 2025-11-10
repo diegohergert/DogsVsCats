@@ -8,6 +8,6 @@ def rename(path, prefix):
             os.rename(os.path.join(path, filename), os.path.join(path, new_name))
 
 
-rename("CatImages\cats", "cat")
-rename("DogImages\dogs", "dog")
+rename(os.path.join("dataset", "training_set", "cats"), "cat")
+rename(os.path.join("dataset", "training_set", "dogs"), "dog")
 print("Renaming complete.")
