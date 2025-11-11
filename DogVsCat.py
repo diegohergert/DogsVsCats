@@ -21,20 +21,23 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
     labels = []
     for filename in os.listdir(cat_dir):
         if filename.endswith('.png') or filename.endswith('.jpg'):
-            img = cv2.imread(os.path.join(cat_dir, filename))
+            img = cv2.imread(os.path.join(cat_dir, filename), cv2.IMREAD_COLOR)
+            if img is None:
+                print(f"Warning: Skipping corrupt or unreadable file: {filename}")
+                continue
             img = cv2.resize(img, image_size)
             
-            #print(f'Image Loading {filename}')
 
             images.append(img)
             imagesGray.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
             labels.append(0)  # 0 for cat
     for filename in os.listdir(dog_dir):
         if filename.endswith('.png') or filename.endswith('.jpg'):
-            img = cv2.imread(os.path.join(dog_dir, filename))
+            img = cv2.imread(os.path.join(dog_dir, filename), cv2.IMREAD_COLOR)
+            if img is None:
+                print(f"Warning: Skipping corrupt or unreadable file: {filename}")
+                continue
             img = cv2.resize(img, image_size)
-
-            #print(f'Image Loading {filename}')
 
             images.append(img)
             imagesGray.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
@@ -43,9 +46,8 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
     return np.array(images), np.array(imagesGray), np.array(labels)
 
 
-cat_dir = os.path.join("dataset", "animals", "cat")
-cat_dir = os.path.join("dogs_cats_sample_1000", "train", "cats")
-dog_dir = os.path.join("dataset", "animals", "dog")
+cat_dir = os.path.join("all_cats_merged")
+dog_dir = os.path.join("all_dogs_merged")
 
 
 images, imagesGray, labels = load_images(cat_dir,dog_dir)
@@ -155,7 +157,7 @@ pipe_mix_pca = Pipeline([
 
 # Running KNN classifier
 print("Running Knn cross validation:")
-k_values = [4, 6, 8, 10, 12, 16, 24, 32]
+k_values = [4, 6, 8, 10, 12, 16, 24, 32, 60]
 knnAccuracyH = {}
 knnAccuracyL = {}
 knnAccuracyHSV = {}
