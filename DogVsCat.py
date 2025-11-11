@@ -45,10 +45,12 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
     cv2.destroyAllWindows()
     return np.array(images), np.array(imagesGray), np.array(labels)
 
-
+'''
 cat_dir = os.path.join("all_cats_merged")
 dog_dir = os.path.join("all_dogs_merged")
-
+'''
+cat_dir = os.path.join("CatImages", "cats")
+dog_dir = os.path.join("DogImages", "dogs")
 
 images, imagesGray, labels = load_images(cat_dir,dog_dir)
 print(f"Loaded {len(images)} images.")
@@ -208,7 +210,8 @@ plt.xlabel('Number of Neighbors (k)')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.grid(True)
-plt.show() 
+plt.savefig("results/KNN_Accuracy_vs_k.png")
+plt.close()
 
 
 print("Starting SVC cross-validation:")
@@ -241,7 +244,8 @@ cm = confusion_matrix(labels, y_pred_cv)
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Cat", "Dog"])
 disp.plot()
 plt.title("SVC (PCA+LBP + HSV) CV Confusion Matrix")
-plt.show()
+plt.savefig("results/SVC_PCA_LBP_HSV_Confusion_Matrix.png")
+plt.close()
 
 
 # 3. ROC Curve and AUC Score
@@ -257,6 +261,7 @@ plt.ylabel('True Positive Rate')
 plt.title('ROC Curve for SVC (PCA+LBP + HSV) from Cross-Validation')
 plt.legend(loc='lower right')
 plt.grid(True)
-plt.show()
+plt.savefig("results/SVC_PCA_LBP_HSV_ROC_Curve.png")
+plt.close()
 
 print("Script finished.")
