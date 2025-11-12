@@ -45,12 +45,13 @@ def load_images(cat_dir, dog_dir, image_size=(128,128)):
     cv2.destroyAllWindows()
     return np.array(images), np.array(imagesGray), np.array(labels)
 
-'''
+
 cat_dir = os.path.join("all_cats_merged")
 dog_dir = os.path.join("all_dogs_merged")
 '''
 cat_dir = os.path.join("CatImages", "cats")
 dog_dir = os.path.join("DogImages", "dogs")
+'''
 
 images, imagesGray, labels = load_images(cat_dir,dog_dir)
 print(f"Loaded {len(images)} images.")
@@ -176,12 +177,12 @@ for k in k_values:
     pipe_mix.set_params(model__n_neighbors=k)
     pipe_mix_pca.set_params(model__n_neighbors=k)
 
-    scores_h = cross_val_score(pipe_hog, hogfeatures, labels, cv=cv_strategy, scoring='accuracy')
-    scores_l = cross_val_score(pipe_lbp, lpb_features, labels, cv=cv_strategy, scoring='accuracy')
-    scores_hsv = cross_val_score(pipe_hsv, colorFeatures, labels, cv=cv_strategy, scoring='accuracy')
-    scores_ph = cross_val_score(pipe_pca_hog, hogfeatures, labels, cv=cv_strategy, scoring='accuracy')
-    scores_m = cross_val_score(pipe_mix, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy')
-    scores_pm = cross_val_score(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy')
+    scores_h = cross_val_score(pipe_hog, hogfeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+    scores_l = cross_val_score(pipe_lbp, lpb_features, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+    scores_hsv = cross_val_score(pipe_hsv, colorFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+    scores_ph = cross_val_score(pipe_pca_hog, hogfeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+    scores_m = cross_val_score(pipe_mix, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+    scores_pm = cross_val_score(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
 
     knnAccuracyH[k] = scores_h.mean()
     knnAccuracyL[k] = scores_l.mean()
@@ -213,22 +214,69 @@ plt.grid(True)
 plt.savefig("results/KNN_Accuracy_vs_k.png")
 plt.close()
 
-
 print("Starting SVC cross-validation:")
 
 svc_model = SVC(kernel='rbf', C=2, gamma='scale', probability=True)
-pipe_mix_pca.set_params(model=svc_model)
-pipe_mix.set_params(model=svc_model)
 
-#print("running SVC on HOG + LBP + HSV features")
-#scores_svc_mix = cross_val_score(pipe_mix, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy')
-#print(f"SVC HOG + LBP + HSV Accuracy: {scores_svc_mix.mean():.4f}")
+pipe_hog.set_params(model=svc_model)
+pipe_lbp.set_params(model=svc_model)
+pipe_hsv.set_params(model=svc_model)
+pipe_pca_hog.set_params(model=svc_model)
+pipe_mix.set_params(model=svc_model)
+pipe_mix_pca.set_params(model=svc_model)
+
+print("Running CV for all SVC pipelines (for box plot)...")
+scores_svc_hog = cross_val_score(pipe_hog, hogfeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+scores_svc_lbp = cross_val_score(pipe_lbp, lpb_features, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+scores_svc_hsv = cross_val_score(pipe_hsv, colorFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+scores_svc_pca_hog = cross_val_score(pipe_pca_hog, hogfeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+scores_svc_mix = cross_val_score(pipe_mix, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+scores_svc_mix_pca = cross_val_score(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
+
+# Print the mean and standard deviation for comparison
+print(f"SVC HOG Accuracy: {scores_svc_hog.mean():.4f} +/- {scores_svc_hog.std():.4f}")
+print(f"SVC LBP Accuracy: {scores_svc_lbp.mean():.4f} +/- {scores_svc_lbp.std():.4f}")
+print(f"SVC HSV Accuracy: {scores_svc_hsv.mean():.4f} +/- {scores_svc_hsv.std():.4f}")
+print(f"SVC PCA HOG Accuracy: {scores_svc_pca_hog.mean():.4f} +/- {scores_svc_pca_hog.std():.4f}")
+print(f"SVC HOG + LBP + HSV Accuracy: {scores_svc_mix.mean():.4f} +/- {scores_svc_mix.std():.4f}")
+print(f"SVC PCA HOG + LBP + HSV Accuracy: {scores_svc_mix_pca.mean():.4f} +/- {scores_svc_mix_pca.std():.4f}")
+
+# --- NEW: Generate Box Plot ---
+print("Generating SVC comparison box plot...")
+data_to_plot = [
+    scores_svc_hog,
+    scores_svc_lbp,
+    scores_svc_hsv,
+    scores_svc_pca_hog,
+    scores_svc_mix,
+    scores_svc_mix_pca
+]
+labels_to_plot = [
+    'SVC HOG',
+    'SVC LBP',
+    'SVC HSV',
+    'SVC PCA HOG',
+    'SVC Mixed',
+    'SVC Mixed (PCA)'
+]
+
+plt.figure(figsize=(12, 8))
+plt.boxplot(data_to_plot, labels=labels_to_plot)
+plt.title('SVC Model Performance Comparison (5-Fold CV)')
+plt.ylabel('Accuracy')
+plt.xticks(rotation=30, ha='right') # Rotate labels to prevent overlap
+plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+plt.tight_layout() # Adjust plot to fit labels
+plt.savefig("results/SVC_Model_Comparison_Boxplot.png")
+plt.close()
+
+
 
 print("running SVC on PCA HOG + LBP + HSV features")
-scores_svc_mix_pca = cross_val_score(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy')
+scores_svc_mix_pca = cross_val_score(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, scoring='accuracy', n_jobs=-1)
 print(f"SVC PCA HOG + LBP + HSV Accuracy: {scores_svc_mix_pca.mean():.4f}")
-y_pred_cv = cross_val_predict(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy)
-y_probs_cv = cross_val_predict(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, method='predict_proba')
+y_pred_cv = cross_val_predict(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, n_jobs=-1)
+y_probs_cv = cross_val_predict(pipe_mix_pca, mergeFeatures, labels, cv=cv_strategy, method='predict_proba', n_jobs=-1)
 # Get the probabilities for the "positive" class (Dog, label 1)
 y_probs_cv_dog = y_probs_cv[:, 1]
 
@@ -248,7 +296,7 @@ plt.savefig("results/SVC_PCA_LBP_HSV_Confusion_Matrix.png")
 plt.close()
 
 
-# 3. ROC Curve and AUC Score
+# ROC Curve and AUC Score
 print("Generating ROC Curve...")
 fpr, tpr, thresholds = roc_curve(labels, y_probs_cv_dog)
 auc_score = roc_auc_score(labels, y_probs_cv_dog)
