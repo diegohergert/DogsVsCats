@@ -56,6 +56,7 @@ dog_dir = os.path.join("DogImages", "dogs")
 images, imagesGray, labels = load_images(cat_dir,dog_dir)
 print(f"Loaded {len(images)} images.")
 
+#HSV Color Features
 colorFeatures = []
 hsv_bins = [16, 8]
 for img in images:
@@ -66,7 +67,7 @@ for img in images:
 colorFeatures =  np.array(colorFeatures).squeeze()
 print(f"Color features shape: {colorFeatures.shape}")
 
-
+# HOG Features
 winsize = (128, 128)
 cellSize = (16, 16)
 blockSize = (48, 48)
@@ -80,6 +81,7 @@ for img in imagesGray:
 hogfeatures = np.array(hogfeatures).squeeze()
 print(f"HOG features shape: {hogfeatures.shape}")
 
+# LBP Features
 lpb_features = []
 radius = 3
 n_points = 36
@@ -92,9 +94,11 @@ for img in imagesGray:
 lpb_features = np.array(lpb_features).squeeze()
 print(f"LBP features shape: {lpb_features.shape}")
 
+# Merging Features
 mergeFeatures = np.hstack((hogfeatures, lpb_features, colorFeatures))
 print(f"Merged features shape: {mergeFeatures.shape}")
 
+# Setting up cross-validation strategy
 cv_strategy = KFold(n_splits=5, shuffle=True, random_state=42)
 
 # HOG pipeline
@@ -109,7 +113,7 @@ pipe_lbp = Pipeline([
     ('model', KNeighborsClassifier())
 ])
 
-# HSV `pipeline
+# HSV pipeline
 pipe_hsv = Pipeline([
     ('scaler', StandardScaler()),
     ('model', KNeighborsClassifier())
@@ -215,7 +219,7 @@ plt.savefig("results/KNN_Accuracy_vs_k.png")
 plt.close()
 
 print("Starting SVC cross-validation:")
-
+#best params I found via many trials
 svc_model = SVC(kernel='rbf', C=2, gamma='scale', probability=True)
 
 pipe_hog.set_params(model=svc_model)
@@ -241,8 +245,8 @@ print(f"SVC PCA HOG Accuracy: {scores_svc_pca_hog.mean():.4f} +/- {scores_svc_pc
 print(f"SVC HOG + LBP + HSV Accuracy: {scores_svc_mix.mean():.4f} +/- {scores_svc_mix.std():.4f}")
 print(f"SVC PCA HOG + LBP + HSV Accuracy: {scores_svc_mix_pca.mean():.4f} +/- {scores_svc_mix_pca.std():.4f}")
 
-# --- NEW: Generate Box Plot ---
-print("Generating SVC comparison box plot...")
+
+print("Creating SVC comparison box plot...")
 data_to_plot = [
     scores_svc_hog,
     scores_svc_lbp,
