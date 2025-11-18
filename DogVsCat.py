@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage.feature import local_binary_pattern
 from sklearn.decomposition import PCA
-from skimage import exposure
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report, roc_auc_score, roc_curve
 from sklearn.model_selection import cross_val_score, KFold, cross_val_predict
@@ -14,7 +13,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 
 
-"load images from directory and resize them"
+"This method loads the images from the cat and dog directorys"
+"This then returns the images (128x128) in color, grayscale and their labels"
 def load_images(cat_dir, dog_dir, image_size=(128,128)):
     images = []
     imagesGray = []
